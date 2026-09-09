@@ -1,656 +1,381 @@
-# FinSight AI
+# FinSight AI — Intelligent Financial Document Analysis & RAG Platform
 
-> AI-Powered Financial Intelligence Platform for Annual Report Analysis
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![ChromaDB](https://img.shields.io/badge/Vector_DB-ChromaDB-orange)](https://www.trychroma.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-FinSight AI is an AI-powered financial analysis platform that transforms annual reports into structured financial insights.
-
-Users can upload company annual reports, automatically extract important financial metrics, explore financial KPIs through an interactive dashboard, and ask questions about uploaded financial documents using a Retrieval-Augmented Generation (RAG) pipeline.
-
-The system combines document processing, semantic chunking, vector search, BM25 retrieval, reranking, LLM-based extraction, financial parsing, and an interactive React dashboard.
+> **FinSight AI** is a full-stack, enterprise-grade financial intelligence system engineered to transform dense corporate annual reports (PDFs) into structured, queryable data and interactive analytics. Built with an advanced **Hybrid Retrieval-Augmented Generation (RAG)** pipeline combining semantic embeddings, lexical BM25 retrieval, and neural cross-encoder reranking.
 
 ---
 
-## 🚀 Features
+## 📑 Table of Contents
 
-### 📄 Annual Report Upload
+- [Overview](#-overview)
+- [System Architecture](#-system-architecture)
+- [Key Features](#-key-features)
+- [Engineering & Technical Highlights](#-engineering--technical-highlights)
+  - [1. Document Ingestion & Semantic Chunking](#1-document-ingestion--semantic-chunking)
+  - [2. Multi-Stage Hybrid Retrieval](#2-multi-stage-hybrid-retrieval)
+  - [3. Financial Metric Extraction & Dual-Format Parsing](#3-financial-metric-extraction--dual-format-parsing)
+  - [4. Multi-Tenant User Isolation](#4-multi-tenant-user-isolation)
+  - [5. Grounded Q&A Chat Pipeline](#5-grounded-qa-chat-pipeline)
+  - [6. Comparative Company Intelligence](#6-comparative-company-intelligence)
+- [Technology Stack](#-technology-stack)
+- [API Reference](#-api-reference)
+- [Project Directory Structure](#-project-directory-structure)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+  - [Environment Variables](#environment-variables)
+- [Author & Acknowledgments](#-author--acknowledgments)
 
-Upload annual reports in PDF format with:
+---
 
-- Company name
-- Financial year
-- PDF document
+## 💡 Overview
 
-The system processes the report through an automated pipeline:
+Public company annual reports (such as SEC 10-K filings) often exceed 100 pages, packed with audited income statements, balance sheets, cash flow tables, and qualitative risks. Navigating and cross-analyzing these reports manually is tedious and prone to oversight.
 
-```text
-PDF
- ↓
-Markdown
- ↓
-Semantic Chunking
- ↓
-Embeddings
- ↓
-ChromaDB
- ↓
-Financial Metric Extraction
- ↓
-SQLite
+**FinSight AI** solves this problem by automating the entire lifecycle of financial report comprehension:
+1. **Parses complex PDF financial reports** while preserving table integrity into clean Markdown.
+2. **Indexes report contents** into dense vector spaces (ChromaDB) and sparse term frequencies (Rank-BM25).
+3. **Extracts critical financial KPIs** (Revenue, Net Income, Operating Cash Flow, Total Debt, Operating Margin, R&D Expenses) into normalized relational records.
+4. **Visualizes performance** using responsive charts and real-time LLM-generated executive risk/strength syntheses.
+5. **Facilitates cross-firm comparison** and contextual, multi-turn conversational Q&A strictly grounded in source documentation.
 
+---
 
-## 🚀 Features
+## 🏛️ System Architecture
 
-### 📄 Annual Report Upload
+FinSight AI employs a decoupled, asynchronous micro-service inspired architecture featuring a React 19 client and a high-throughput FastAPI backend.
 
-Upload annual reports in PDF format with:
-
-- Company name
-- Financial year
-- PDF document
-
-The system processes the report through an automated pipeline:
-
-```text
-PDF
- ↓
-Markdown
- ↓
-Semantic Chunking
- ↓
-Embeddings
- ↓
-ChromaDB
- ↓
-Financial Metric Extraction
- ↓
-SQLite
+```
+                         ┌─────────────────────────────────┐
+                         │   Modern React 19 UI (Vite)     │
+                         │   Tailwind CSS v4 + Chart.js    │
+                         └────────────────┬────────────────┘
+                                          │  RESTful API / JSON
+                                          ▼
+                         ┌─────────────────────────────────┐
+                         │       FastAPI Gateway           │
+                         │   OAuth2 JWT Auth & Security    │
+                         └────────────────┬────────────────┘
+                                          │
+       ┌───────────────────┬──────────────┴───────────────┬───────────────────┐
+       ▼                   ▼                              ▼                   ▼
+┌──────────────┐   ┌──────────────┐             ┌──────────────────┐   ┌──────────────┐
+│ Auth Router  │   │ Upload &     │             │ RAG Chat &       │   │ Dashboard &  │
+│ User DB      │   │ Ingestion    │             │ Q&A Engine       │   │ Comparison   │
+└──────────────┘   └───────┬──────┘             └─────────┬────────┘   └──────┬───────┘
+                           │                              │                   │
+                           ▼                              │                   │
+                  ┌─────────────────┐                     │                   │
+                  │  PyMuPDF4LLM    │                     │                   │
+                  │  (Markdown)     │                     │                   │
+                  └────────┬────────┘                     │                   │
+                           ▼                              │                   │
+                  ┌─────────────────┐                     │                   │
+                  │ Semantic        │                     │                   │
+                  │ Chunking Engine │                     │                   │
+                  └────────┬────────┘                     │                   │
+                           ▼                              │                   │
+          ┌────────────────┴────────────────┐             │                   │
+          ▼                                 ▼             │                   │
+  ┌───────────────┐                 ┌───────────────┐     │                   │
+  │ ChromaDB      │                 │ Rank-BM25     │◄────┤                   │
+  │ Dense Vectors │                 │ Sparse Index  │     │                   │
+  └───────┬───────┘                 └───────┬───────┘     │                   │
+          └────────────────┬────────────────┘             │                   │
+                           ▼                              │                   │
+                  ┌─────────────────┐                     │                   │
+                  │ Hybrid Fusion   │◄────────────────────┘                   │
+                  └────────┬────────┘                                         │
+                           ▼                                                  │
+                  ┌─────────────────┐                                         │
+                  │ Cross-Encoder   │ (ms-marco-MiniLM-L-6-v2)                │
+                  │ Neural Reranker │                                         │
+                  └────────┬────────┘                                         │
+                           ▼                                                  │
+                  ┌─────────────────┐                                         │
+                  │ LLM Generation  │ (OpenAI GPT-4o-mini)                    │
+                  └────────┬────────┘                                         │
+                           ▼                                                  ▼
+                  ┌─────────────────┐                               ┌─────────────────┐
+                  │ KPI Parser &    │──────────────────────────────►│ SQLite Database │
+                  │ Normalizer      │                               │ Financial Store │
+                  └─────────────────┘                               └─────────────────┘
 ```
 
-### 📊 Financial KPI Dashboard
+---
 
-The dashboard provides a structured overview of important financial metrics:
+## ✨ Key Features
 
-- Revenue
-- Net Income
-- Operating Cash Flow
-- Debt
-- Operating Margin
-- R&D Expense
+- **Automated Financial Report Ingestion**: Upload any corporate annual filing in PDF format with designated company name and fiscal period.
+- **Smart Semantic Text Chunking**: Splits markdown-converted documents along topical and structural boundaries rather than arbitrary character cuts, retaining financial table cohesion.
+- **Dual Retrieval (Dense + Sparse)**: Bridges semantic conceptual queries with exact numerical/financial phrase lookups via hybrid ChromaDB + BM25 indexing.
+- **Neural Re-ranking Pipeline**: Utilizes a lightweight cross-encoder (`ms-marco-MiniLM-L-6-v2`) to score query-document pairs, eliminating irrelevant chunks before feeding context to the LLM.
+- **Automated KPI Extraction & Normalization**: Accurately extracts 6 fundamental metrics (Revenue, Net Income, Cash Flow, Debt, Margin, R&D) and automatically normalizes currencies/units (e.g., "$97.69B" $\rightarrow$ `97690000000`) for visualization while retaining raw audited strings.
+- **Executive AI Synthesis**: Generates targeted management-style summaries, highlighting operational strengths, emerging risks, strategic outlook, and a confidence score.
+- **Cross-Entity Comparison Engine**: Side-by-side metric comparison and automated comparative synthesis between different companies or historical fiscal years.
+- **Zero-Hallucination Grounded Chat**: An interactive chat assistant bound by strict source-only constraints with 6-turn conversational context tracking.
+- **Secure Multi-User Tenant Isolation**: All ingested documents, vector collections, and relational records are partitioned strictly by user ID via JWT authentication.
+- **Complete Resource Cleanup**: Cascading deletion endpoint that purges local raw PDFs, vector collections, and database records simultaneously.
 
-Each metric contains both its original display value and a parsed numerical value.
+---
 
-Example:
+## 🔬 Engineering & Technical Highlights
 
+### 1. Document Ingestion & Semantic Chunking
+Raw PDF files are parsed using `pymupdf4llm`, converting complex financial layouts and balance sheets into clean Markdown tables rather than flat, unstructured text. The parsed document is segmented using semantic chunking heuristics with proportional overlap, preserving contextual meaning and avoiding table fragment severance.
+
+### 2. Multi-Stage Hybrid Retrieval
+Standard vector search frequently struggles with financial terminology, specific ticker tags, and exact numerical balance-sheet line items. FinSight AI addresses this using a three-tier retrieval pipeline:
+1. **Query Expansion**: The user query is rewritten via LLM into financial search terminology.
+2. **Parallel Hybrid Search**:
+   - **Dense Retrieval**: Embedding similarity query executed over ChromaDB with `$and` metadata filters (`user_id`, `company`, `year`).
+   - **Sparse Retrieval**: BM25 keyword matching via `rank-bm25` targeting specific audited keywords.
+3. **Reciprocal Dedup & Cross-Encoder Reranking**: The union of candidates is scored using `cross-encoder/ms-marco-MiniLM-L-6-v2`, returning the top $k$ highest-confidence context chunks.
+
+```
+User Query ──► Query Expander ──┬──► ChromaDB Vector Search ──┐
+                                └──► Rank-BM25 Keyword Search ─┴──► Cross-Encoder ──► Top Context Chunks
+```
+
+### 3. Financial Metric Extraction & Dual-Format Parsing
+Extracting financial figures requires handling diverse international accounting notations (`$`, `€`, `₹`, `million`, `billion`, `crore`, `lakh`, `%`). 
+
+The extraction engine instructs the LLM to output exact audit-preserved strings without speculative math. The backend `financial_parser.py` then produces a dual payload:
 ```json
 {
-    "display": "$97,690 million",
-    "value": 97690000000
+  "display": "$97,690 million",
+  "value": 97690000000.0
 }
 ```
+This enables the frontend to display human-readable strings on KPI cards while feeding clean floating-point values into Chart.js without UI-layer regex hacks.
 
-### 🏢 Company + Year Report Selection
+### 4. Multi-Tenant User Isolation
+Every ingestion record, ChromaDB embedding document, and relational database row is tagged with the authenticated user's ID. This prevents cross-account data leakage in shared environments and enables distinct report versions per user.
 
-FinSight AI supports multiple annual reports for the same company.
+### 5. Grounded Q&A Chat Pipeline
+The conversational assistant operates under strict system constraints:
+- Must only answer using the retrieved context chunks.
+- Refuses to speculate or invent unstated financial figures.
+- Retains conversational history across the last 6 message turns.
+- Translates balance sheet and operating performance into investor-relevant takeaways.
 
-Example:
+### 6. Comparative Company Intelligence
+Users can select any two uploaded reports (e.g., *Tesla 2024* vs. *Tesla 2025*, or *Apple 2024* vs. *Microsoft 2024*). The system aggregates metrics from both entities and prompts the LLM to deliver a rigorous comparative breakdown covering margin resilience, leverage ratios, and capital deployment.
 
-```text
-Tesla (2025)
-Tesla (2024)
-Apple (2024)
-Microsoft (2024)
-```
+---
 
-Reports are identified using:
+## 🛠️ Technology Stack
 
-```text
-User ID
-+
-Company
-+
-Financial Year
-```
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React 19, Vite, Tailwind CSS v4, Chart.js, react-chartjs-2, React Router v7, Lucide Icons, React Hot Toast, React Markdown |
+| **Backend API** | Python 3.11+, FastAPI, Uvicorn, Pydantic, Python-Multipart |
+| **Security & Auth** | OAuth2 Password Bearer, JWT (Python-Jose), Bcrypt (Passlib) |
+| **Database & ORM** | SQLite / PostgreSQL, SQLAlchemy, Alembic |
+| **Vector Store** | ChromaDB (Persistent Disk Storage with Metadata Filters) |
+| **Retrieval & NLP** | Rank-BM25, Sentence-Transformers (`ms-marco-MiniLM-L-6-v2`), LangChain |
+| **LLM & Embeddings**| OpenAI GPT-4o-mini, OpenAI Embeddings (`text-embedding-3-small` / HuggingFace) |
+| **PDF Processing** | PyMuPDF, PyMuPDF4LLM |
 
-### 📈 Financial Visualization
+---
 
-The dashboard provides interactive financial visualizations using Chart.js.
+## 🔌 API Reference
 
-The visualization supports:
+### Authentication
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/auth/register` | Register a new user account |
+| `POST` | `/auth/login` | Authenticate and obtain JWT access token |
 
-- Revenue
-- Net Income
-- Operating Cash Flow
-- Debt
-- Responsive charts
-- Animated presentation
-- Formatted financial values
-- Interactive tooltips
+### Ingestion & Documents
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/upload/` | Upload PDF report, trigger ingestion, chunking, and KPI extraction |
+| `DELETE` | `/reports/{company}/{year}` | Cascade delete report PDF, database metrics, and vector records |
 
-### 🤖 AI Financial Analysis
+### Dashboard & Analytics
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/dashboard/companies/list` | Retrieve list of all uploaded companies and fiscal years for user |
+| `GET` | `/dashboard/{company}/{year}` | Fetch parsed financial KPIs for a specific company report |
+| `GET` | `/dashboard/{company}/{year}/insights` | Generate AI executive analysis (Strengths, Risks, Outlook) |
 
-FinSight AI generates automated financial analysis using an LLM.
+### Comparative Analytics
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/comparison/` | Retrieve comparative metrics for two selected entities |
+| `GET` | `/comparison/insights` | Generate deep LLM comparative synthesis between two companies |
 
-The analysis can provide:
+### Chat & Q&A
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/chat/` | Query report using multi-turn conversational hybrid RAG pipeline |
 
-- Executive Summary
-- Financial Strengths
-- Financial Risks
-- Overall Financial Outlook
-- Confidence Score
+### System
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health/` | API liveness and readiness probe |
 
-### 💬 AI Financial Chat
+---
 
-Users can ask questions about uploaded financial reports.
-
-Example questions:
-
-```text
-What was the company's revenue?
-
-What was the operating cash flow?
-
-How much debt did the company have?
-
-What are the major financial risks?
-
-Why is the company's cash flow important?
-```
-
-The chatbot retrieves relevant information from the selected financial report before generating an answer.
-
-
-# 🧠 RAG Architecture
-
-FinSight AI uses a Hybrid Retrieval-Augmented Generation architecture.
+## 📂 Project Directory Structure
 
 ```text
-                  User Question
-                       │
-                       ▼
-                Query Expansion
-                       │
-             ┌─────────┴─────────┐
-             │                   │
-             ▼                   ▼
-        Semantic Search       BM25 Search
-          ChromaDB             Keyword
-             │                   │
-             └─────────┬─────────┘
-                       │
-                       ▼
-                Hybrid Retrieval
-                       │
-                       ▼
-                    Reranker
-                       │
-                       ▼
-                Relevant Chunks
-                       │
-                       ▼
-                     LLM
-                       │
-                       ▼
-                  Final Answer
-```
-
-Retrieval is scoped using:
-
-```text
-User ID
-Company
-Year
-```
-
-This allows the system to distinguish between different annual reports belonging to the same company.
-
-# 🔍 Hybrid Retrieval
-
-FinSight AI combines semantic and lexical retrieval.
-
-## Semantic Retrieval
-
-Semantic retrieval uses embeddings to find documents based on meaning and contextual similarity.
-
-```text
-User Query
-    ↓
-Embedding Model
-    ↓
-ChromaDB
-    ↓
-Similarity Search
-```
-
-## BM25 Retrieval
-
-BM25 provides keyword-based retrieval.
-
-This is particularly useful for financial documents because exact terms such as:
-
-```text
-Revenue
-Net Income
-Operating Cash Flow
-Long-term Debt
-Research and Development
-```
-
-can be highly important.
-
-## Reranking
-
-Results from the retrieval stage are passed through a reranker to improve relevance before being provided to the LLM.
-
-The final retrieval pipeline is:
-
-```text
-Query
-  ↓
-Query Expansion
-  ↓
-Semantic Search + BM25
-  ↓
-Hybrid Results
-  ↓
-Reranking
-  ↓
-Relevant Context
-  ↓
-LLM
-```
-
-
-# 🧩 Financial Metric Extraction
-
-The system extracts important financial metrics from annual reports.
-
-Supported metrics include:
-
-```text
-Revenue
-Net Income
-Operating Cash Flow
-Debt
-Operating Margin
-R&D Expense
-```
-
-The extraction pipeline is:
-
-```text
-Question
-   ↓
-Query Expansion
-   ↓
-Hybrid Retrieval
-   ↓
-Reranking
-   ↓
-Relevant Document Chunks
-   ↓
-LLM Extraction
-   ↓
-Financial Value
-```
-
-The extraction system is instructed to preserve financial units such as:
-
-```text
-$
-%
-million
-billion
-crore
-lakh
-```
-
-For example:
-
-```text
-97,690
-+
-Amounts in millions
-```
-
-is returned as:
-
-```text
-$97,690 million
-```
-
-rather than simply:
-
-```text
-97690
-```
-
-The system also avoids calculating values when the requested metric cannot be directly extracted from the report.
-
-
-# 💰 Financial Value Parser
-
-FinSight AI includes a reusable financial parser that converts extracted financial values into numerical representations.
-
-Supported units include:
-
-```text
-thousand
-million
-billion
-trillion
-lakh
-crore
-```
-
-Example:
-
-```text
-$118.5 billion
-```
-
-is converted internally to:
-
-```text
-118500000000
-```
-
-while the original display value is preserved:
-
-```text
-$118.5 billion
-```
-
-Percentage values are handled separately.
-
-This allows the application to use the same financial value for both:
-
-- Human-readable dashboard display
-- Numerical visualization and analysis
-
-
-# 🏗️ System Architecture
-
-```text
-                         ┌──────────────────┐
-                         │   React Frontend │
-                         └────────┬─────────┘
-                                  │
-                                  ▼
-                         ┌──────────────────┐
-                         │    FastAPI API   │
-                         └────────┬─────────┘
-                                  │
-             ┌────────────────────┼────────────────────┐
-             │                    │                    │
-             ▼                    ▼                    ▼
-        Dashboard              Upload               AI Chat
-             │                    │                    │
-             │                    ▼                    │
-             │             PDF Processing             │
-             │                    │                    │
-             │                    ▼                    │
-             │             Semantic Chunking           │
-             │                    │                    │
-             │                    ▼                    │
-             │               Embeddings                │
-             │                    │                    │
-             │                    ▼                    │
-             │               ChromaDB ◄────────────────┘
-             │                    │
-             │                    ▼
-             │             Hybrid Retrieval
-             │                    │
-             │                    ▼
-             │                 Reranker
-             │                    │
-             │                    ▼
-             │                    LLM
-             │
-             ▼
-       SQLite Database
-       Financial Metrics
-```
-
-# 🛠️ Tech Stack
-
-## Frontend
-
-- React 19
-- React Router
-- Tailwind CSS
-- Axios
-- Lucide React
-- React Hot Toast
-- React Markdown
-- Chart.js
-- react-chartjs-2
-- Vite
-
-## Backend
-
-- Python
-- FastAPI
-- Uvicorn
-- SQLAlchemy
-- SQLite
-
-## AI / RAG
-
-- LangChain
-- OpenAI GPT-4o-mini
-- Embedding Models
-- ChromaDB
-- BM25
-- Rank-BM25
-- Reranking
-- Query Expansion
-
-## Document Processing
-
-- PDF to Markdown conversion
-- Semantic Chunking
-- Embedding Generation
-
-
-# 📁 Project Structure
-
-```text
-finsight-ai/
-│
-├── auth/
+RAGBasedDocAnalysis/
+├── auth/                       # JWT authentication, token generation, user validation
+│   ├── __init__.py
 │   └── oauth2.py
-│
-├── database/
-│   ├── db.py
-│   ├── user.py
-│   ├── metrics.py
-│   └── save_metrics.py
-│
-├── ingestion/
-│   ├── pdf_to_markdown.py
-│   ├── semantic_chunker.py
-│   └── ingest_document.py
-│
-├── llm/
+├── database/                   # SQLAlchemy models, sessions, and persistence helpers
+│   ├── create_table.py
+│   ├── db.py                   # Engine configuration & DB session generator
+│   ├── delete_report.py        # Relational record cleanup
+│   ├── metrics.py              # FinancialMetric ORM model
+│   ├── save_metrics.py         # KPI insertion and update logic
+│   └── user.py                 # User ORM model
+├── ingestion/                  # PDF extraction, parsing, and text segmentation
+│   ├── ingest_document.py      # Unified ingestion orchestrator
+│   ├── pdf_to_markdown.py      # PyMuPDF4LLM table-preserving parser
+│   └── semantic_chunker.py     # Structural & semantic text chunking
+├── llm/                        # Model client configurations (OpenAI / HuggingFace)
 │   └── openai_client.py
-│
-├── rag/
-│   ├── ai_insights.py
-│   ├── extract_metric.py
-│   ├── kpi_extractor_rag.py
-│   └── rag_pipeline.py
-│
-├── retrieval/
-│   ├── hybrid_retriever.py
-│   ├── bm25_retriever.py
-│   ├── reranker.py
-│   └── query_expander.py
-│
-├── routes/
+├── rag/                        # Core RAG pipelines and prompt orchestrators
+│   ├── ai_insights.py          # Executive analysis & risk synthesis
+│   ├── comparison_insights.py  # Multi-company comparison generator
+│   ├── extract_metric.py       # Single-metric targeted extraction
+│   ├── kpi_extractor_rag.py    # Automated 6-KPI extraction pipeline
+│   └── rag_pipeline.py         # Multi-turn conversational Q&A engine
+├── retrieval/                  # Hybrid retrieval mechanisms
+│   ├── bm25_retriever.py       # Rank-BM25 sparse search engine
+│   ├── hybrid_retriever.py     # Combined vector + keyword candidate retrieval
+│   ├── query_expander.py       # LLM query reformulation
+│   └── reranker.py             # Cross-Encoder neural re-ranking
+├── routes/                     # FastAPI route definitions
+│   ├── auth.py
+│   ├── chat.py
+│   ├── comparison.py
 │   ├── dashboard.py
-│   ├── upload.py
-│   └── chat.py
-│
-├── schemas/
-│   └── chat.py
-│
-├── utils/
+│   ├── health.py
+│   ├── report.py
+│   └── upload.py
+├── storage/                    # Local raw PDF file storage & cleanup utilities
+│   └── delete_pdf.py
+├── utils/                      # Financial parsing and normalization utilities
 │   └── financial_parser.py
-│
-├── vectorstore/
-│   └── chroma_db.py
-│
-├── frontend/
+├── vectorstore/                # ChromaDB collection management
+│   ├── chroma_db.py
+│   └── delete_vectors.py
+├── frontend/                   # Modern React 19 single-page application
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── dashboard/
-│   │   │   └── common/
-│   │   ├── pages/
-│   │   ├── layouts/
-│   │   ├── context/
-│   │   ├── api/
+│   │   ├── api/                # Axios API client & interceptors
+│   │   ├── components/         # Reusable UI components (Navbar, Sidebar, Cards)
+│   │   ├── context/            # Authentication & State providers
+│   │   ├── pages/              # Landing, Dashboard, Comparison, Chat, Upload, Auth
 │   │   └── App.jsx
-│   │
 │   ├── package.json
 │   └── vite.config.js
-│
-├── data/
-│   └── raw_pdfs/
-│
-├── main.py
-├── app.py
-├── requirements.txt
+├── app.py                      # FastAPI application definition and CORS setup
+├── main.py                     # Entry point (Uvicorn runner)
+├── requirements.txt            # Python dependencies
 └── README.md
 ```
 
+---
 
-# ⚙️ Installation
+## 🚀 Getting Started
 
-## 1. Clone the Repository
+### Prerequisites
 
-```bash
-git clone https://github.com/rahillll16/finsight-ai-investor-intelligence-platform.git
-cd finsight-ai
-```
+- **Python**: `3.11` or `3.12`
+- **Node.js**: `v18.0.0` or later
+- **OpenAI API Key**: Required for embeddings and LLM generation
 
-## 2. Create a Python Virtual Environment
+### Backend Setup
 
-### Windows
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/nototiger0227/RAGBasedDocAnalysis.git
+   cd RAGBasedDocAnalysis
+   ```
 
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
+2. **Create and activate a virtual environment**:
+   - **Windows (PowerShell)**:
+     ```powershell
+     python -m venv .venv
+     .venv\Scripts\Activate.ps1
+     ```
+   - **Linux / macOS**:
+     ```bash
+     python3 -m venv .venv
+     source .venv/bin/activate
+     ```
 
-### Linux / macOS
+3. **Install Python dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
+4. **Configure environment variables**:
+   Create a `.env` file in the project root (see [Environment Variables](#environment-variables) below).
 
-## 3. Install Backend Dependencies
+5. **Initialize database & launch backend**:
+   ```bash
+   python main.py
+   ```
+   The backend API will be available at `http://127.0.0.1:8000`.  
+   Interactive Swagger docs are accessible at `http://127.0.0.1:8000/docs`.
 
-```bash
-pip install -r requirements.txt
-```
+### Frontend Setup
 
-## 4. Install Frontend Dependencies
+1. **Navigate to the frontend directory**:
+   ```bash
+   cd frontend
+   ```
 
-```bash
-cd frontend
-npm install
-```
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
+3. **Run the Vite development server**:
+   ```bash
+   npm run dev
+   ```
+   The application UI will be accessible at `http://localhost:5173`.
 
-# 🔐 Environment Variables
+### Environment Variables
 
-Create a `.env` file in the project root.
-
-Example:
+Create a `.env` file in the root directory:
 
 ```env
-OPENAI_API_KEY=your_api_key
+# AI Model Configuration
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Security & Authentication
+SECRET_KEY=your_super_secret_hex_key_here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# Database Configuration (SQLite default; PostgreSQL also supported)
 DATABASE_URL=sqlite:///./finsight.db
-SECRET_KEY=your_secret_key
+
+# Frontend CORS Origin
+BASE_URL=http://localhost:5173
 ```
 
-Never commit `.env` or API keys to Git.
+---
 
-Recommended `.gitignore` entries:
+## 👨‍💻 Author & Acknowledgments
 
-```text
-.env
-.venv/
-__pycache__/
-*.pyc
-finsight.db
-data/raw_pdfs/
-chroma/
-node_modules/
-dist/
-```
+**Vansh Gupta**  
+*Department of Computer Engineering*  
+*National Institute of Technology (NIT), Kurukshetra*  
+GitHub: [@nototiger0227](https://github.com/nototiger0227)
 
-
-# 🚀 Running the Project
-
-## Start the Backend
-
-From the project root:
-
-```bash
-python main.py
-```
-
-The backend typically runs at:
-
-```text
-http://127.0.0.1:8000
-```
-
-FastAPI documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-## Start the Frontend
-
-Open another terminal:
-
-```bash
-cd frontend
-npm run dev
-```
-
-The frontend typically runs at:
-
-```text
-http://localhost:5173
-```
-
-
-
-# 👨‍💻 Author
-
-## Vansh Gupta
-
-Computer Engineering  
-NIT Kurukshetra
-
-FinSight AI was developed as a full-stack AI/RAG financial intelligence platform combining:
-
-- Full-Stack Development
-- React
-- FastAPI
-- SQLAlchemy
-- LLMs
-- Retrieval-Augmented Generation
-- Vector Databases
-- Hybrid Information Retrieval
-- BM25
-- Semantic Search
-- Reranking
-- Financial Document Processing
-- Financial Data Extraction
-- Interactive Financial Analytics
+FinSight AI was created as an advanced, end-to-end investigation into production-grade Information Retrieval, combining modern Generative AI pipelines with real-world financial data engineering.
