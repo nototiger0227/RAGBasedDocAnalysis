@@ -1,4 +1,4 @@
-# FinSight AI — Intelligent Financial Document Analysis & RAG Platform
+# DocRAG AI — Intelligent Financial Document Analysis & RAG Platform
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -7,7 +7,7 @@
 [![ChromaDB](https://img.shields.io/badge/Vector_DB-ChromaDB-orange)](https://www.trychroma.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-> **FinSight AI** is a full-stack, enterprise-grade financial intelligence system engineered to transform dense corporate annual reports (PDFs) into structured, queryable data and interactive analytics. Built with an advanced **Hybrid Retrieval-Augmented Generation (RAG)** pipeline combining semantic embeddings, lexical BM25 retrieval, and neural cross-encoder reranking.
+> **DocRAG AI** is a full-stack, enterprise-grade financial intelligence system engineered to transform dense corporate annual reports (PDFs) into structured, queryable data and interactive analytics. Built with an advanced **Hybrid Retrieval-Augmented Generation (RAG)** pipeline combining semantic embeddings, lexical BM25 retrieval, and neural cross-encoder reranking.
 
 ---
 
@@ -39,7 +39,7 @@
 
 Public company annual reports (such as SEC 10-K filings) often exceed 100 pages, packed with audited income statements, balance sheets, cash flow tables, and qualitative risks. Navigating and cross-analyzing these reports manually is tedious and prone to oversight.
 
-**FinSight AI** solves this problem by automating the entire lifecycle of financial report comprehension:
+**DocRAG AI** solves this problem by automating the entire lifecycle of financial report comprehension:
 1. **Parses complex PDF financial reports** while preserving table integrity into clean Markdown.
 2. **Indexes report contents** into dense vector spaces (ChromaDB) and sparse term frequencies (Rank-BM25).
 3. **Extracts critical financial KPIs** (Revenue, Net Income, Operating Cash Flow, Total Debt, Operating Margin, R&D Expenses) into normalized relational records.
@@ -50,7 +50,7 @@ Public company annual reports (such as SEC 10-K filings) often exceed 100 pages,
 
 ## 🏛️ System Architecture
 
-FinSight AI employs a decoupled, asynchronous micro-service inspired architecture featuring a React 19 client and a high-throughput FastAPI backend.
+DocRAG AI employs a decoupled, asynchronous micro-service inspired architecture featuring a React 19 client and a high-throughput FastAPI backend.
 
 ```
                          ┌─────────────────────────────────┐
@@ -132,7 +132,7 @@ FinSight AI employs a decoupled, asynchronous micro-service inspired architectur
 Raw PDF files are parsed using `pymupdf4llm`, converting complex financial layouts and balance sheets into clean Markdown tables rather than flat, unstructured text. The parsed document is segmented using semantic chunking heuristics with proportional overlap, preserving contextual meaning and avoiding table fragment severance.
 
 ### 2. Multi-Stage Hybrid Retrieval
-Standard vector search frequently struggles with financial terminology, specific ticker tags, and exact numerical balance-sheet line items. FinSight AI addresses this using a three-tier retrieval pipeline:
+Standard vector search frequently struggles with financial terminology, specific ticker tags, and exact numerical balance-sheet line items. DocRAG AI addresses this using a three-tier retrieval pipeline:
 1. **Query Expansion**: The user query is rewritten via LLM into financial search terminology.
 2. **Parallel Hybrid Search**:
    - **Dense Retrieval**: Embedding similarity query executed over ChromaDB with `$and` metadata filters (`user_id`, `company`, `year`).
@@ -363,7 +363,7 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 
 # Database Configuration (SQLite default; PostgreSQL also supported)
-DATABASE_URL=sqlite:///./finsight.db
+DATABASE_URL=sqlite:///./DocRAG.db
 
 # Frontend CORS Origin
 BASE_URL=http://localhost:5173
@@ -378,4 +378,4 @@ BASE_URL=http://localhost:5173
 *National Institute of Technology (NIT), Kurukshetra*  
 GitHub: [@nototiger0227](https://github.com/nototiger0227)
 
-FinSight AI was created as an advanced, end-to-end investigation into production-grade Information Retrieval, combining modern Generative AI pipelines with real-world financial data engineering.
+DocRAG AI was created as an advanced, end-to-end investigation into production-grade Information Retrieval, combining modern Generative AI pipelines with real-world financial data engineering.
